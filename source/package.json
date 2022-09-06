@@ -24,6 +24,8 @@
   },
   "homepage": "https://github.com/dev-ozmosis/cloud_manager#readme",
   "dependencies": {
-    "electron": "^20.1.1"
+    "axios": "^0.27.2",
+    "electron": "^20.1.1",
+    "moment": "^2.29.4"
   }
 }
