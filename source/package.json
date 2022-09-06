@@ -1,0 +1,29 @@
+{
+  "name": "cloud_manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-ozmosis/cloud_manager.git"
+  },
+  "keywords": [
+    "cloud",
+    "manager",
+    "electron",
+    "node",
+    "js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dev-ozmosis/cloud_manager/issues"
+  },
+  "homepage": "https://github.com/dev-ozmosis/cloud_manager#readme",
+  "dependencies": {
+    "electron": "^20.1.1"
+  }
+}
