@@ -42,7 +42,7 @@ describe("Testing MSDrive", () => {
         drive.getRoot()
             .then ((rootFiles) => {
 
-                if (rootFiles.length == 0) { 
+                if (rootFiles.length === 0) { 
                     return;
                 }
 
@@ -50,9 +50,16 @@ describe("Testing MSDrive", () => {
                 should.notEqual(foundDirectories, null);
                 should.notEqual(foundDirectories.length, 0);
 
-                return drive.itemsFromDirectory(foundDirectories[0].id);
+                return drive.itemsFromDirectory(foundDirectories[1].id);
             })
-            .then (() => {
+            .then ((directoryItems) => {
+
+                if (directoryItems.length !== 0) { 
+                    
+                    should.notEqual(directoryItems, null);
+                    should.notEqual(directoryItems.length, 0);
+                }
+
                 done();
             })
             .catch ((err)=> { done(); });

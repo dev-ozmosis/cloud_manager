@@ -34,6 +34,7 @@ class MSDrive {
 
             const response = await axios.default.post(ms_drive_config.tokenEndpoint, qs.stringify(postData));
 
+            //FIXME: is the best option store the data in this way?
             MSDrive.session.authStr = response.data.token_type  + " " + response.data.access_token;
             MSDrive.session.expiresIn = response.data.expires_in;
             MSDrive.session.startIn = moment();
@@ -55,8 +56,12 @@ class MSDrive {
         return true;
     }
 
-    getUserInfo = async (userEmail) => {
+    getUserInfo = async (userEmail = "") => {
 
+        if (userEmail === "") {
+            return null;
+        }
+        
         try {
 
             await this.connect();
@@ -66,6 +71,7 @@ class MSDrive {
 
             const data = response.data;
             let user = new UserInfo(data.id, data.displayName);
+            
             console.log("[MSDrive::getUserInfo] user: ", user);
             return user;
         }
@@ -112,7 +118,11 @@ class MSDrive {
         }
     }
 
-    itemsFromDirectory = async (directoryId) => {
+    itemsFromDirectory = async (directoryId = "") => {
+
+        if (directoryId === "") { 
+            return; 
+        }
 
         try {
 
@@ -120,7 +130,17 @@ class MSDrive {
 
             const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/items/" + directoryId + "/children";  
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
-            console.log("[MSDrive::itemsFromDirectory]: ", response.data);
+
+            let items = [];
+            const data = response.data;
+            for (let i = 0; i < data.value.length; i++) {
+
+                const item = MSDriveItem.createFromJSON(data.value[i]);
+                items.push(item);
+            }
+
+            console.log("[MSDrive::itemsFromDirectory]: ", JSON.stringify(items));
+            return items;
         }
         catch (err) {
             
