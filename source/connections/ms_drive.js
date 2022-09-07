@@ -2,7 +2,7 @@ const qs = require("qs");
 const axios = require("axios");
 const moment = require("moment");
 const { ms_drive_config } = require("./../settings");
-const { UserInfo } = require("./ms_drive_models");
+const { UserInfo, MSDriveItem } = require("./ms_drive_models");
 
 class MSDrive {
 
@@ -39,7 +39,7 @@ class MSDrive {
             MSDrive.session.startIn = moment();
 
             //TODO: read the email from file settings or from user interaction
-            this.user = await this.getUserInfo("xxxxxxx"); 
+            this.user = await this.getUserInfo(ms_drive_config.UserPrincipalName); 
         }
         catch (err) {
 
@@ -91,9 +91,15 @@ class MSDrive {
             const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/root/children";  
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
 
+            let items = [];
             const data = response.data;
-            
-            console.log("getRoot success: ", data );
+            for (let i = 0; i < data.value.length; i++) {
+
+                const item = MSDriveItem.createFromJSON(data.value[i]);
+                items.push(item);
+            }
+
+            return items;
         }
         catch (err) {
             
