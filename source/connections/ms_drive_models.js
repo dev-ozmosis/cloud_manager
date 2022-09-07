@@ -20,7 +20,8 @@ class MSDriveItem {
 
     static createFromJSON(json) {
 
-        let item = new MSDriveItem(json.id, json.name, json.createdAt);
+        const createdAt = json.createdAt !== undefined ? json.createdAt : json.createdDateTime;
+        let item = new MSDriveItem(json.id, json.name, createdAt);
         if (json.createdBy !== undefined && json.createdBy !== null) {
 
             const user = json.createdBy.user;

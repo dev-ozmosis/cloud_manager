@@ -3,7 +3,9 @@ const axios = require("axios");
 const moment = require("moment");
 const { ms_drive_config } = require("./../settings");
 const { UserInfo, MSDriveItem } = require("./ms_drive_models");
+const { URLS } = require("./../constants");
 
+//https://docs.microsoft.com/en-us/graph/api/resources/driveitem?view=graph-rest-1.0
 class MSDrive {
 
     constructor() {
@@ -66,7 +68,7 @@ class MSDrive {
 
             await this.connect();
 
-            const url = "https://graph.microsoft.com/v1.0/users/" + userEmail;
+            const url = URLS.MS_BASE_URL + userEmail;
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
 
             const data = response.data;
@@ -94,7 +96,7 @@ class MSDrive {
 
             await this.connect();
 
-            const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/root/children";  
+            const url = URLS.MS_BASE_URL + this.user.id + "/drive/root/children";  
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
 
             let items = [];
@@ -128,7 +130,7 @@ class MSDrive {
 
             await this.connect();
 
-            const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/items/" + directoryId + "/children";  
+            const url = URLS.MS_BASE_URL + this.user.id + "/drive/items/" + directoryId + "/children";  
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
 
             let items = [];
@@ -149,6 +151,43 @@ class MSDrive {
 
                 const error = response.data.error;
                 console.log("[MSDrive::itemsFromDirectory]: ", error);
+            }
+        }
+    }
+
+    
+    createFolder= async (name, parentId = "") => {
+
+        //https://docs.microsoft.com/en-us/graph/api/driveitem-post-children?view=graph-rest-1.0&tabs=javascript
+        if (name === "") { return null; }
+
+        try {
+
+            await this.connect();
+
+            let url = URLS.MS_BASE_URL + this.user.id + "/drive/items/" + parentId;
+            if (parentId === "") {
+                //TODO: if s empty can be root directory, get root directory id!
+            }
+
+            url += "/children";
+
+            const directoryParam = { "name": name, "folder": { } };
+            axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+            const response = await axios.default.post(url, directoryParam, { headers: { Authorization: MSDrive.session.authStr } });
+
+            const data = response.data;
+            const folderItem = MSDriveItem.createFromJSON(data);
+            
+            return folderItem;
+        }
+        catch (err) {
+
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("[MSDrive::createFolder]: ", error);
             }
         }
     }
