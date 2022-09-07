@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "mocha --timeout 10000"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,11 @@
   "dependencies": {
     "axios": "^0.27.2",
     "electron": "^20.1.1",
-    "moment": "^2.29.4"
+    "moment": "^2.29.4",
+    "qs": "^6.11.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.0.0",
+    "should": "^13.2.3"
   }
 }

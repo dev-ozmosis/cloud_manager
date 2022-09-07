@@ -1,16 +1,24 @@
-import { ms_drive_config } from "./../settings";
+const qs = require("qs"); 
+const axios = require("axios");
+const moment = require("moment");
+const { ms_drive_config } = require("./../settings");
+const { UserInfo } = require("./ms_drive_models");
 
 class MSDrive {
 
+    constructor() {
+        this.user = null;
+    }
+
     connect = async () => { 
 
-        if (MSDrive.session.authStr === "") {
+        if (MSDrive.session.authStr !== "") {
 
             const now = moment();
             const startToken = MSDrive.session.startIn;
-            const endToken = moment(startToken).add(MSDrive.session.expiresIn, 's'); 
+            const endToken = moment(startToken).add(MSDrive.session.expiresIn, 'seconds'); 
             if (now < endToken) {
-                return;
+                return true;
             }
         }
 
@@ -25,13 +33,76 @@ class MSDrive {
         try {
 
             const response = await axios.default.post(ms_drive_config.tokenEndpoint, qs.stringify(postData));
+
             MSDrive.session.authStr = response.data.token_type  + " " + response.data.access_token;
             MSDrive.session.expiresIn = response.data.expires_in;
             MSDrive.session.startIn = moment();
+
+            //TODO: read the email from file settings or from user interaction
+            this.user = await this.getUserInfo("xxxxxxx"); 
         }
         catch (err) {
 
-            console.log("[MSDrive::connect] Error: ", err);
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("[MSDrive::connect] error: ", error);
+            }
+            return false
+        }
+
+        return true;
+    }
+
+    getUserInfo = async (userEmail) => {
+
+        try {
+
+            await this.connect();
+
+            const url = "https://graph.microsoft.com/v1.0/users/" + userEmail;
+            const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
+
+            const data = response.data;
+            let user = new UserInfo(data.id, data.displayName);
+            console.log("[MSDrive::getUserInfo] user: ", user);
+            return user;
+        }
+        catch (err) {
+
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("[MSDrive::getUserInfo] err: ", error);
+            }
+
+            return null;
+        }
+    }
+
+    getRoot = async () => {
+
+        try {
+
+            await this.connect();
+
+            const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/root/children";  
+            const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
+
+            const data = response.data;
+            
+            console.log("getRoot success: ", data );
+        }
+        catch (err) {
+            
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("getRoot error: ", error);
+            }
         }
     }
 }
@@ -42,4 +113,4 @@ MSDrive.session = {
     startIn: null
 };
 
-export default MSDrive;
+module.exports.MSDrive = MSDrive;
