@@ -72,9 +72,8 @@ class MSDrive {
             const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
 
             const data = response.data;
-            let user = new UserInfo(data.id, data.displayName);
-            
-            console.log("[MSDrive::getUserInfo] user: ", user);
+            const user = new UserInfo(data.id, data.displayName);
+        
             return user;
         }
         catch (err) {
@@ -229,7 +228,6 @@ class MSDrive {
             const fileResp = await axios.default.put(data.uploadUrl, fileData, putConfig);
             const nFile = fileResp.data;
             const fileItem = MSDriveItem.createFromJSON(nFile);
-            console.log ("fileItem: ", JSON.stringify(fileItem));
 
             return fileItem;
         }
