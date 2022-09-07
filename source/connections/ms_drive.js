@@ -111,6 +111,27 @@ class MSDrive {
             }
         }
     }
+
+    itemsFromDirectory = async (directoryId) => {
+
+        try {
+
+            await this.connect();
+
+            const url = "https://graph.microsoft.com/v1.0/users/"+ this.user.id + "/drive/items/" + directoryId + "/children";  
+            const response = await axios.default.get(url, { headers: { Authorization: MSDrive.session.authStr } });
+            console.log("[MSDrive::itemsFromDirectory]: ", response.data);
+        }
+        catch (err) {
+            
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("[MSDrive::itemsFromDirectory]: ", error);
+            }
+        }
+    }
 }
 
 MSDrive.session = {
