@@ -1,6 +1,7 @@
 const should = require("should");
 const MSDrive = require("./../connections/ms_drive").MSDrive;
 const { ms_drive_config } = require("./../settings");
+const fs = require("fs");
 
 describe("Testing MSDrive", () => {
 
@@ -13,7 +14,7 @@ describe("Testing MSDrive", () => {
                 should.notEqual(MSDrive.session.authStr, "");
                 done();
             })
-            .catch ((err)=> { done(); });
+            .catch ((err)=> { done(err); });
     });
 
     it("Should try to get MSUserInfo", (done) => {
@@ -23,7 +24,7 @@ describe("Testing MSDrive", () => {
             .then ((success) => {
                 done();
             })
-            .catch ((err)=> { done(); });
+            .catch ((err)=> { done(err); });
     });
 
     it("Should try to get MSDriveRootDirectory", (done) => {
@@ -33,7 +34,7 @@ describe("Testing MSDrive", () => {
             .then ((success) => {
                 done();
             })
-            .catch ((err)=> { done(); });
+            .catch ((err)=> { done(err); });
     });
 
     it("Should try to get MSChildsFromDirectory", (done) => {
@@ -62,7 +63,7 @@ describe("Testing MSDrive", () => {
 
                 done();
             })
-            .catch ((err)=> { done(); });
+            .catch ((err)=> { done(err); });
     });
 
     it("Should try to create MSCreateFolder", (done) => {
@@ -89,6 +90,35 @@ describe("Testing MSDrive", () => {
 
                 done();
             })
-            .catch ((err)=> { done(); });
+            .catch ((err)=> { done(err); });
+    });
+
+    it("Should try to MSUploadFile", (done) => {
+
+        const fileName = "testFile.pdf";
+        const fileToUpload = __dirname + "/test_file.pdf";
+        
+        const drive = new MSDrive();
+        drive.getRoot()
+            .then ((rootFiles) => {
+
+                if (rootFiles.length === 0) { 
+                    return;
+                }
+
+                const foundDirectories = rootFiles.filter( (item) => { return item.isFolder === true} );
+                should.notEqual(foundDirectories, null);
+                should.notEqual(foundDirectories.length, 0);
+
+                const fileData = fs.readFileSync(fileToUpload);
+                return drive.uploadFile(fileName, fileData, foundDirectories[0].id);
+            })
+            .then ((fileItem) => {
+
+                should.notEqual(fileItem, null);
+                should.equal(fileItem.name, fileName);
+                done();
+            })
+            .catch ( (err) => { done(err); });
     });
 });

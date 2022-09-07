@@ -155,7 +155,6 @@ class MSDrive {
         }
     }
 
-    
     createFolder= async (name, parentId = "") => {
 
         //https://docs.microsoft.com/en-us/graph/api/driveitem-post-children?view=graph-rest-1.0&tabs=javascript
@@ -188,6 +187,59 @@ class MSDrive {
 
                 const error = response.data.error;
                 console.log("[MSDrive::createFolder]: ", error);
+            }
+        }
+    }
+
+    uploadFile = async (name, fileData, parentId) => {
+
+        //https://docs.microsoft.com/en-us/graph/api/driveitem-createuploadsession?view=graph-rest-1.0
+        
+        if ( fileData === undefined || fileData === null) {
+           return null;
+        }
+
+        try {
+
+            let url = URLS.MS_BASE_URL + this.user.id + "/drive/items/" + parentId + ":/" + name + ":/createUploadSession";
+
+            const headerConfig = {
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+                headers: { 
+                    Authorization: MSDrive.session.authStr,
+                    "Content-Type": "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8"
+                }
+            };
+
+            const response = await axios.default.post(url, fileData.data, headerConfig);
+            const data = response.data;
+
+            const byteLength = fileData.byteLength;
+            const putConfig = {
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Content-Length": byteLength,
+                    "Content-Range": "bytes 0-"+ (byteLength - 1) + "/" + byteLength
+                }
+            };
+
+            const fileResp = await axios.default.put(data.uploadUrl, fileData, putConfig);
+            const nFile = fileResp.data;
+            const fileItem = MSDriveItem.createFromJSON(nFile);
+            console.log ("fileItem: ", JSON.stringify(fileItem));
+
+            return fileItem;
+        }
+        catch (err) {
+
+            const response = err.response;
+            if (response.data.error != undefined && response.data.error != null) {
+
+                const error = response.data.error;
+                console.log("[MSDrive::uploadFile]: ", error);
             }
         }
     }
